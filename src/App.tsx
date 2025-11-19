@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Github, Mail, Phone, FileText, ChevronDown, ExternalLink, Award, Cpu, Code, Layers, Zap, Globe, MessageSquare, Send, Sparkles, X, Loader2 } from 'lucide-react';
+
+import { useState, useEffect, useRef } from 'react';
+import { Mail, Phone, ChevronDown, Award, Cpu, Code, Layers, Zap, MessageSquare, Send, Sparkles, X, Loader2 } from 'lucide-react';
 
 // --- Gemini API 配置 ---
-// 注意：在真实部署时，建议使用 Vercel 环境变量或后端代理来保护 API Key
+// 在 Vercel 部署时，请取消下面这一行的注释，并确保在后台配置了 VITE_GEMINI_API_KEY 环境变量
+// const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+// 本地开发或未配置 Key 时使用空字符串
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY; 
 const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
 
-// --- SEO 组件: 让网站更容易被搜索到 ---
+// --- SEO 组件 ---
 const SEOHead = () => {
   useEffect(() => {
-    // 1. 设置网页标题
     document.title = "钟辉宇 | 机器人与AI算法工程师 | 个人作品集";
-    
-    // 2. 设置 Meta 描述 (搜索引擎显示的摘要)
     const setMeta = (name: string, content: string) => {
       let element = document.querySelector(`meta[name="${name}"]`);
       if (!element) {
@@ -22,44 +22,23 @@ const SEOHead = () => {
       }
       element.setAttribute('content', content);
     };
-
-    setMeta('description', '钟辉宇的个人主页。专注于精准农业、机器人技术与深度学习算法(YOLO/ROS)。展示激光除草系统、肉牛行为识别等创新项目经验。');
-    setMeta('keywords', '钟辉宇, 算法工程师, 机器人, 深度学习, 精准农业, ROS, YOLO, 自动驾驶, 简历, 作品集');
+    setMeta('description', '钟辉宇的个人主页。专注于精准农业、机器人技术与深度学习算法(YOLO/ROS)。');
+    setMeta('keywords', '钟辉宇, 算法工程师, 机器人, 深度学习, 精准农业, ROS, YOLO, 作品集');
     setMeta('author', '钟辉宇');
-
-    // 3. 设置 Open Graph (为了微信/LinkedIn 分享显示好看)
-    const setOg = (property: string, content: string) => {
-      let element = document.querySelector(`meta[property="${property}"]`);
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute('property', property);
-        document.head.appendChild(element);
-      }
-      element.setAttribute('content', content);
-    };
-
-    setOg('og:title', '钟辉宇 - AI与机器人算法工程师');
-    setOg('og:description', '查看我的精准农业机器人项目与深度学习研究成果。');
-    setOg('og:type', 'profile');
   }, []);
-
   return null;
 };
 
 // --- 通用 Gemini 调用函数 ---
 const callGeminiAPI = async (prompt: string, systemInstruction?: string) => {
   try {
-    // 简单的防止空 Key 调用检查
     if (!apiKey) return "API Key 未配置。请在代码中设置 apiKey，或在部署平台配置环境变量。";
-
     const payload: any = {
       contents: [{ parts: [{ text: prompt }] }]
     };
-    
     if (systemInstruction) {
       payload.systemInstruction = { parts: [{ text: systemInstruction }] };
     }
-
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
       {
@@ -68,7 +47,6 @@ const callGeminiAPI = async (prompt: string, systemInstruction?: string) => {
         body: JSON.stringify(payload)
       }
     );
-
     if (!response.ok) throw new Error('API call failed');
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 暂时无法响应，请稍后再试。";
@@ -269,7 +247,7 @@ const Navbar = () => (
   </nav>
 );
 
-// --- 组件: AI 增强型项目卡片 ---
+// --- 组件: 项目卡片 ---
 const ProjectCard = ({ project }: { project: any }) => {
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -341,7 +319,7 @@ const ProjectCard = ({ project }: { project: any }) => {
   );
 };
 
-// --- 组件: AI 实验助手 (聊天机器人) ---
+// --- 组件: AI 实验助手 ---
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{role: 'user' | 'model', text: string}[]>([
@@ -363,7 +341,6 @@ const AIChatWidget = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // 构建上下文 prompt
     const systemContext = `你是一个基于简历数据的 AI 助手，代表"钟辉宇"。
     请根据以下 JSON 数据回答用户关于技能、项目和经历的问题：
     ${JSON.stringify(PORTFOLIO_DATA)}
@@ -384,7 +361,6 @@ const AIChatWidget = () => {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
       {isOpen && (
         <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-80 sm:w-96 mb-4 overflow-hidden animate-slide-up flex flex-col max-h-[500px]">
-          {/* Header */}
           <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
@@ -395,7 +371,6 @@ const AIChatWidget = () => {
             </button>
           </div>
           
-          {/* Chat Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/95 min-h-[300px]">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -420,7 +395,6 @@ const AIChatWidget = () => {
             <div ref={chatEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
             <input
               type="text"
@@ -447,7 +421,6 @@ const AIChatWidget = () => {
       >
         <MessageSquare className="mr-2" size={20} />
         <span className="font-bold">Talk to AI</span>
-        {/* 提示气泡 */}
         {!isOpen && (
           <span className="absolute right-full mr-4 bg-slate-800 text-white text-xs py-1 px-3 rounded-lg border border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             试试问我任何关于简历的问题！
@@ -460,8 +433,6 @@ const AIChatWidget = () => {
 
 // --- 主应用 ---
 export default function Portfolio() {
-  const [activeTab, setActiveTab] = useState('all');
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-green-500/30 selection:text-green-200">
       <SEOHead />
@@ -666,3 +637,4 @@ export default function Portfolio() {
     </div>
   );
 }
+
