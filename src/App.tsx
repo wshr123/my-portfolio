@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-  Mail, Phone, ChevronDown, Award, Cpu, Code, Layers, Zap, 
-  MessageSquare, Send, Sparkles, X, Loader2, User, BookOpen, 
-  Camera, PlayCircle, MapPin, Calendar, ExternalLink, Globe, Activity, Trophy, BookText, FileText, Layout, Users, Target
+  Mail, Phone, ChevronDown, Award, Cpu, Zap,
+  MessageSquare, Send, Sparkles, X, Loader2, User, BookOpen,
+  Camera, PlayCircle, Calendar, ExternalLink, Globe, Activity, Trophy, BookText, FileText, Users, Target
 } from 'lucide-react';
 
 // --- 配置区域 ---
 // 在 Vercel 部署时，请在后台配置 VITE_DEEPSEEK_API_KEY 环境变量
 // 本地开发或未配置 Key 时使用空字符串
-// 修复：为了避免 "import.meta" 在 es2015 环境下的构建错误，这里暂时使用 try-catch 或直接赋值
-// 如果您在本地开发，可以直接将 Key 填入下面的字符串中
 let apiKey = "";
 try {
   // @ts-ignore
@@ -662,16 +660,11 @@ export default function Portfolio() {
               <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-3 hover:rotate-0 transition-transform duration-500 shadow-2xl">
                 <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative border border-slate-700">
                    {/* 你的照片 URL，取消注释并替换为实际路径 */}
-                    <img
+                   <img
                      src="/assets/3.jpg"
                      alt="钟辉宇证件照"
                      className="w-full h-full object-cover"
                    />
-                   {/* 照片占位 */}
-                   {/*<div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 bg-slate-950">*/}
-                   {/*   <User size={60} className="mb-4 text-slate-700"/>*/}
-                   {/*   <span className="text-xs font-mono text-slate-500">Photo Placeholder</span>*/}
-                   {/*</div>*/}
                 </div>
 
                 {/* 悬浮数据卡片 */}
