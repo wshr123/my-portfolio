@@ -814,7 +814,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* 多彩生活 */}
+      {/* 多彩生活 grayscale group-hover:grayscale-0 */}
       <section id="生活" className="py-24 bg-slate-900/30 border-y border-slate-800/50">
         <div className="max-w-6xl mx-auto px-4">
           <SectionTitle icon={Camera}>多彩生活</SectionTitle>
@@ -826,7 +826,7 @@ export default function Portfolio() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {PORTFOLIO_DATA.life.map((item, i) => (
               <div key={i} className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer shadow-xl border border-slate-800">
-                <img src={item.url} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" />
+                <img src={item.url} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 " />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-4">
                   <div>
                     <span className="text-xs text-green-400 font-mono bg-black/50 px-2 py-0.5 rounded mb-2 inline-block">{item.tag}</span>
