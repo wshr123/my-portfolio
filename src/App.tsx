@@ -8,9 +8,8 @@ import {
 // --- 配置区域 ---
 // 为了保证预览环境绝对稳定，暂时将 API Key 设为空字符串。
 // 在 Vercel 部署时，请在后台配置 VITE_GEMINI_API_KEY 环境变量，并取消下面代码的注释
-// const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-const apiKey = "";
-const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
+const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || "";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 
 // --- 类型定义 ---
 interface Project {
