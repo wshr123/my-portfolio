@@ -6,10 +6,19 @@ import {
 } from 'lucide-react';
 
 // --- 配置区域 ---
-// 为了保证预览环境绝对稳定，暂时将 API Key 设为空字符串。
-// 在 Vercel 部署时，请在后台配置 VITE_GEMINI_API_KEY 环境变量，并取消下面代码的注释
-const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || "";
-const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+// 在 Vercel 部署时，请在后台配置 VITE_DEEPSEEK_API_KEY 环境变量
+// 本地开发或未配置 Key 时使用空字符串
+// 修复：为了避免 "import.meta" 在 es2015 环境下的构建错误，这里暂时使用 try-catch 或直接赋值
+// 如果您在本地开发，可以直接将 Key 填入下面的字符串中
+let apiKey = "";
+try {
+  // @ts-ignore
+  apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY || "";
+} catch (e) {
+  console.warn("import.meta is not available, using empty API key.");
+}
+
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"; // DeepSeek API 端点
 
 // --- 类型定义 ---
 interface Project {
@@ -96,7 +105,7 @@ const PORTFOLIO_DATA = {
         "实验验证：完成内外参标定、激光能量实验及室内验证。",
         "学术成果：论文《田间激光除草机器人对靶控制系统设计与试验》被《农业机械学报》(EI) 录用（第一作者）。"
       ],
-      // 激光项目：4张占位图
+      // 使用 Placehold.co 占位图
       images: [
         "/assets/laser-1.png",
         "/assets/laser-2.jpg",
@@ -281,7 +290,7 @@ const PORTFOLIO_DATA = {
     { title: "学术交流：iROS 参会", icon: Globe, url: "/assets/4.jpg", desc: "参与国际机器人与自动化顶会，追踪前沿技术，拓宽学术视野。", tag: "学术" },
     { title: "工程实践：实验日常", icon: Zap, url: "/assets/2.jpg", desc: "在实验室进行系统集成、设备调试和算法验证的日常，是科研落地的核心环节。", tag: "科研" },
     { title: "运动休闲：高尔夫", icon: Activity, url: "/assets/5.png", desc: "通过高尔夫放松身心，训练专注力与策略思维，保持身心平衡。", tag: "休闲" },
-    { title: "人文探索：旅行摄影", icon: Camera, url: "/assets/6.png", desc: "用镜头记录旅途中的自然风光与人文细节，在探索中汲取创造灵感。", tag: "生活" },
+    { title: "人文探索：旅行摄影", icon: Camera, url: "/assets/6.jpg", desc: "用镜头记录旅途中的自然风光与人文细节，在探索中汲取创造灵感。", tag: "生活" },
   ]
 };
 
@@ -340,6 +349,7 @@ const VideoEmbedModal = ({ videoUrl, onClose }: { videoUrl: string, onClose: () 
   }
 
   if (!embedUrl || !embedUrl.startsWith('http')) {
+      // Fallback for invalid/unsupported URLs
       embedUrl = "https://placehold.co/560x315/ccfbf1/052e16?text=Invalid+Video+URL";
   }
 
@@ -519,7 +529,7 @@ const AIChatWidget = () => {
     // 如果没有 API Key，使用模拟回复
     if (!apiKey) {
       setTimeout(() => {
-        setMessages(prev => [...prev, {role: 'model', text: "（演示模式）请在部署环境变量中配置 VITE_GEMINI_API_KEY 以启用真实 AI 回复。我目前知道钟辉宇在做激光除草机器人，用了 YOLO 和 ROS。"}]);
+        setMessages(prev => [...prev, {role: 'model', text: "（演示模式）请在部署环境变量中配置 VITE_DEEPSEEK_API_KEY 以启用真实 AI 回复。我目前知道钟辉宇在做激光除草机器人，用了 YOLO 和 ROS。"}]);
         setLoading(false);
       }, 1000);
       return;
@@ -528,18 +538,24 @@ const AIChatWidget = () => {
     try {
       const context = `你扮演钟辉宇的数字分身。基于以下数据回答：${JSON.stringify(PORTFOLIO_DATA)}。简练、专业、自信。`;
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        DEEPSEEK_API_URL,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: userText }] }],
-            systemInstruction: { parts: [{ text: context }] }
+            model: "deepseek-chat",
+            messages: [
+              { role: "system", content: context },
+              { role: "user", content: userText }
+            ]
           })
         }
       );
       const data = await response.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 暂时无法响应。";
+      const reply = data.choices?.[0]?.message?.content || "AI 暂时无法响应。";
       setMessages(prev => [...prev, {role: 'model', text: reply}]);
     } catch (e) {
       setMessages(prev => [...prev, {role: 'model', text: "连接 AI 服务出错，请检查网络或 Key。"}]);
@@ -646,11 +662,16 @@ export default function Portfolio() {
               <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-3 hover:rotate-0 transition-transform duration-500 shadow-2xl">
                 <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative border border-slate-700">
                    {/* 你的照片 URL，取消注释并替换为实际路径 */}
-                   <img
-                     src="https://placehold.co/256x341/334155/ffffff?text=Zhong+Huiyu+Photo"
+                    <img
+                     src="/assets/3.jpg"
                      alt="钟辉宇证件照"
                      className="w-full h-full object-cover"
                    />
+                   {/* 照片占位 */}
+                   {/*<div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 bg-slate-950">*/}
+                   {/*   <User size={60} className="mb-4 text-slate-700"/>*/}
+                   {/*   <span className="text-xs font-mono text-slate-500">Photo Placeholder</span>*/}
+                   {/*</div>*/}
                 </div>
 
                 {/* 悬浮数据卡片 */}
