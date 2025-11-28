@@ -2,15 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Mail, Phone, ChevronDown, Award, Cpu, Code, Layers, Zap, 
   MessageSquare, Send, Sparkles, X, Loader2, User, BookOpen, 
-  Camera, PlayCircle, MapPin, Calendar, ExternalLink, Github,
-  Target, PenTool, Users, Trophy, BookText, FileText
+  Camera, PlayCircle, MapPin, Calendar, ExternalLink, Globe, Activity, Trophy, BookText, FileText, Layout, Users, Target
 } from 'lucide-react';
 
 // --- 配置区域 ---
 // 为了保证预览环境绝对稳定，暂时将 API Key 设为空字符串。
 // 在 Vercel 部署时，请在后台配置 VITE_GEMINI_API_KEY 环境变量，并取消下面代码的注释
 // const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-const apiKey = ""; 
+const apiKey = "";
 const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
 
 // --- 类型定义 ---
@@ -24,8 +23,8 @@ interface Project {
   background: string;
   work: string[];
   result: string[];
-  images?: string[]; 
-  videoUrl?: string;
+  images?: string[];
+  videoUrl?: string; // 外部视频链接 (Bilibili, YouTube 等)
   paper?: string;
 }
 
@@ -38,36 +37,37 @@ const PORTFOLIO_DATA = {
     email: "zhonghuiyu01@gmail.com",
     phone: "13510210698",
     location: "广东深圳 / 北京",
+    // 个人介绍：已根据最新要求修改和润色
     bio: `我是一名致力于将人工智能与机器人技术落地于精准农业的硕士研究生。
     
     我的工程之路始于本科期间对 SolidWorks 的热爱，在“大西瓜”创新团队中，我从一名结构设计成员成长为团队负责人，积累了扎实的机械设计功底。硕士期间，我转向智能化方向，主攻计算机视觉与机器人控制。
     
     我具备独特的“软硬全栈”能力：
     • 硬件端：能独立完成除草系统的结构设计、设备选型、嵌入式通信（Arduino/Teensy）以及系统集成测试。
-    • 软件端：熟悉 Python 编程，深入了解并应用多种前沿深度学习模型：
+    • 软件端：熟悉 Python 编程，深入理解并应用前沿深度学习模型：
       - 目标检测：YOLO 系列, DETR (端到端检测)
       - 语义/实例分割：SAM (Segment Anything Model)
-      - 行为识别：SlowFast, VideoMAE
-      - 部署与控制：具备在 Jetson 平台上利用 TensorRT 部署算法及基于 ROS 开发上层控制系统的经验。
-    • 语言能力：英语口语流利，能够进行日常英语对话与技术交流。`,
+      - 行为识别：SlowFast, VideoMAE (视频自编码器)
+      - 部署与控制：在 Jetson 平台上进行 TensorRT 加速部署，并基于 ROS 开发上层控制系统。
+    • 语言能力：英语口语流利，能够进行日常对话与技术交流。`,
     education: [
-      { 
-        school: "中国农业大学", 
-        degree: "机械电子工程 (硕士 | 保研)", 
-        year: "2023.09 - 2026.06", 
-        desc: "研究方向：机器人和AI技术在精准农业上的应用 | 获一次一等奖学金，两次二等奖学金" 
+      {
+        school: "中国农业大学",
+        degree: "机械电子工程 (硕士 | 保研)",
+        year: "2023.09 - 2026.06",
+        desc: "研究方向：机器人和AI技术在精准农业上的应用 | 获一次一等奖学金，两次二等奖学金"
       },
-      { 
-        school: "广东工业大学", 
-        degree: "机械电子工程 (学士 | 创新班)", 
-        year: "2019.09 - 2023.06", 
-        desc: "获两次一等奖学金，一次二等奖学金 | 英语六级 451" 
+      {
+        school: "广东工业大学",
+        degree: "机械电子工程 (学士 | 创新班)",
+        year: "2019.09 - 2023.06",
+        desc: "获两次一等奖学金，一次二等奖学金 | 英语六级 451"
       }
     ]
   },
   stats: [
     { label: "核心项目", value: "6+" },
-    { label: "学术论文", value: "3" }, 
+    { label: "学术论文", value: "3" },
     { label: "发明专利", value: "2" },
     { label: "国家/省奖", value: "6+" }
   ],
@@ -97,14 +97,14 @@ const PORTFOLIO_DATA = {
         "实验验证：完成内外参标定、激光能量实验及室内验证。",
         "学术成果：论文《田间激光除草机器人对靶控制系统设计与试验》被《农业机械学报》(EI) 录用（第一作者）。"
       ],
+      // 激光项目：4张占位图
       images: [
-        "/assets/laser-2.jpg",
         "/assets/laser-1.png",
-        "/assets/laser-3.jpg",
+        "/assets/laser-2.jpg",
         "/assets/laser-4.png",
-        "/assets/laser-5.jpg",
-        "/assets/laser-6.png",
-      ]
+        "/assets/laser-6.png"
+      ],
+      videoUrl: ""
     },
     {
       id: "visual-weeding",
@@ -124,12 +124,16 @@ const PORTFOLIO_DATA = {
         "提速降耗：推理速度提升 150%，平台功耗降低 80%。",
         "实地表现：实现了 12km/h 高速作业下的稳定除草，伤苗率 <1%，检测准确率 95%。"
       ],
+      // 视觉项目：4张占位图
       images: [
+        "/assets/weeding-1.jpg",
         "/assets/weeding-2.png",
         "/assets/weeding-3.png",
-        "/assets/weeding-1.png"
-      ]
+        "https://placehold.co/800x450/0f172a/60a5fa?text=Image+4"
+      ],
+      videoUrl: ""
     },
+    // --- 核心修改：肉牛行为识别 - 增加 4 张图片 ---
     {
       id: "cattle-behavior",
       title: "基于时空动作检测的肉牛行为识别",
@@ -146,12 +150,15 @@ const PORTFOLIO_DATA = {
         "性能提升：在 CVB 数据集上准确率提升 13.6%，计算量下降 65%，推理速度 23.3 FPS。",
         "学术成果：论文投稿中科院一区 Top 期刊 Computers and Electronics in Agriculture (在审)。"
       ],
-      images: [
+      paper: "EDST-Net: Efficient Dual-Stream Spatio-Temporal Network...",
+      images: [ // 增加 4 张占位图
         "/assets/cattle-1.png",
         "/assets/cattle-2.png",
-        "/assets/cattle-3.png"
-      ]
+        "/assets/cattle-3.png",
+        "https://placehold.co/800x450/ca8a04/ffffff?text=Temporal+Tracking"
+      ],
     },
+    // --- 核心修改：生菜检测与跟踪 - 增加 4 张图片 ---
     {
       id: "lettuce-detection",
       title: "农业机器人生菜检测与跟踪",
@@ -167,11 +174,14 @@ const PORTFOLIO_DATA = {
       result: [
         "论文发表于 Journal of Field Robotics (中科院二区 IF=5.2，第四作者)。"
       ],
-      images: [
+      images: [ // 增加 4 张占位图
         "/assets/lettuce-1.png",
         "/assets/lettuce-2.png",
+        "https://placehold.co/800x450/a78bfa/ffffff?text=Tracking+Visualization",
+        "https://placehold.co/800x450/8b5cf6/ffffff?text=Precision+Spraying+App"
       ]
     },
+    // --- 核心修改：本科创新项目集锦 - 增加 4 张图片 ---
     {
       id: "undergrad-innovation",
       title: "本科创新项目集锦",
@@ -188,17 +198,12 @@ const PORTFOLIO_DATA = {
         "获互联网+省金奖、挑战杯省铜奖、成图大赛国家一等奖。",
         "积累了丰富的设计与动手能力。"
       ],
-      images: [
+      images: [ // 增加 4 张占位图
         "/assets/benke-1.png",
         "/assets/benke-2.png",
-        "/assets/benke-3.png",
-        "/assets/benke-4.png",
-        "/assets/benke-5.png",
-        "/assets/benke-6.png",
-        "/assets/benke-7.png",
-        "/assets/benke-8.png",
-        "/assets/benke-9.png",
-          ]
+        "/assets/benke-6.jpg",
+        "/assets/benke-7.jpg"
+      ]
     }
   ] as Project[],
   activities: [
@@ -209,12 +214,12 @@ const PORTFOLIO_DATA = {
     },
     {
       title: "成图协会 副会长",
-      org: "广东工业大学 (2021-2022)", 
+      org: "广东工业大学 (2021-2022)",
       desc: "作为联合创始人参与协会组建，建立健全内部管理制度。制定并实施针对新成员的 SolidWorks/CAD 软件培训计划。在校级科技节中，主持绘图比赛的命题与评审工作，致力于在校园内推广先进的工程制图技术与规范。"
     },
     {
       title: "青春健康协会 讲师干事",
-      org: "广东工业大学 (2019-2020)", 
+      org: "广东工业大学 (2019-2020)",
       desc: "担任同伴教育讲师，面向全校3个学院15个班级，累计开展青春健康知识讲座覆盖800余人次。提供专业的朋辈咨询服务，以亲和力与专业度获得师生认可。"
     },
     {
@@ -223,7 +228,6 @@ const PORTFOLIO_DATA = {
       desc: "积极投身社会服务，担任迎新志愿者助力20级新生融入校园；在深圳疫情期间挺身而出，担任社区核酸检测志愿者；寒假期间回访母校进行招生宣传，获寒招“优秀个人”称号。"
     }
   ],
-  // 5. 新增：学术成果板块 (论文与专利)
   publications: [
     {
       type: "论文",
@@ -273,11 +277,12 @@ const PORTFOLIO_DATA = {
     { name: "优秀学生一等奖学金 (本科x2, 硕士x1)", level: "校级" },
     { name: "优秀学生二等奖学金 (本科x1, 硕士x2)", level: "校级" }
   ],
+  // 核心修改：重新定义多彩生活部分
   life: [
     { title: "学术交流：iROS 参会", icon: Globe, url: "/assets/4.jpg", desc: "参与国际机器人与自动化顶会，追踪前沿技术，拓宽学术视野。", tag: "学术" },
     { title: "工程实践：实验日常", icon: Zap, url: "/assets/2.jpg", desc: "在实验室进行系统集成、设备调试和算法验证的日常，是科研落地的核心环节。", tag: "科研" },
     { title: "运动休闲：高尔夫", icon: Activity, url: "/assets/5.png", desc: "通过高尔夫放松身心，训练专注力与策略思维，保持身心平衡。", tag: "休闲" },
-    { title: "人文探索：旅行摄影", icon: Camera, url: "", desc: "用镜头记录旅途中的自然风光与人文细节，在探索中汲取创造灵感。", tag: "生活" },
+    { title: "人文探索：旅行摄影", icon: Camera, url: "/assets/6.png", desc: "用镜头记录旅途中的自然风光与人文细节，在探索中汲取创造灵感。", tag: "生活" },
   ]
 };
 
@@ -300,109 +305,196 @@ const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode, ico
   </h2>
 );
 
+// --- 模态框组件：视频嵌入 ---
+const VideoEmbedModal = ({ videoUrl, onClose }: { videoUrl: string, onClose: () => void }) => {
+  let embedUrl = videoUrl;
+
+  // Aspect Ratio for Video Player
+  const aspectRatioClass = "aspect-video";
+
+  // Bilibili iframe embedding logic
+  if (videoUrl.includes('b23.tv') || videoUrl.includes('bilibili.com')) {
+    const url = new URL(videoUrl.includes('b23.tv') ? `https://www.bilibili.com/video/${videoUrl.split('/').pop()}` : videoUrl);
+
+    let bvid = url.searchParams.get('bvid');
+    let aid = url.searchParams.get('aid');
+
+    if (!bvid && url.pathname.startsWith('/video/')) {
+        bvid = url.pathname.split('/')[2];
+    }
+
+    if (bvid) {
+        embedUrl = `https://player.bilibili.com/player.html?bvid=${bvid}&page=1&high_quality=1&as_wide=1&danmaku=0`;
+    } else if (aid) {
+        embedUrl = `https://player.bilibili.com/player.html?aid=${aid}&page=1&high_quality=1&as_wide=1&danmaku=0`;
+    } else {
+        embedUrl = "https://placehold.co/560x315/ccfbf1/052e16?text=Invalid+Bilibili+URL";
+    }
+
+  } else if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+    // YouTube embedding logic
+    const videoIdMatch = videoUrl.match(/(?:\/embed\/|\/watch\?v=|\/youtu\.be\/|\/v\/)([^&\n?#]+)/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : videoUrl.split('/').pop();
+    if (videoId) {
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+  }
+
+  if (!embedUrl || !embedUrl.startsWith('http')) {
+      embedUrl = "https://placehold.co/560x315/ccfbf1/052e16?text=Invalid+Video+URL";
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+        <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl relative" onClick={e => e.stopPropagation()}>
+            <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-10">
+                <X size={24} />
+            </button>
+            <div className="p-6">
+                <h3 className="text-xl font-bold text-white mb-4">项目演示视频</h3>
+                <div className={`relative w-full ${aspectRatioClass} overflow-hidden rounded-xl`}>
+                    <iframe
+                        className="w-full h-full"
+                        src={embedUrl}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="Project Video Demonstration"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+};
+
+
 // --- 模态框组件：项目详情 ---
 const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => void }) => {
+  const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
+
   if (!project) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl relative flex flex-col" onClick={e => e.stopPropagation()}>
-        
-        {/* 关闭按钮 */}
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-20">
-          <X size={24} />
-        </button>
+    <>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+        <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl relative flex flex-col" onClick={e => e.stopPropagation()}>
 
-        {/* 顶部 Banner */}
-        <div className="relative h-64 bg-slate-800 flex items-end p-8 overflow-hidden shrink-0">
-          <img src={project.images?.[0]} className="absolute inset-0 w-full h-full object-cover opacity-40 blur-sm" alt="bg"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
-          <div className="relative z-10 w-full">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 shadow-sm">{project.title}</h2>
-            <div className="flex flex-wrap gap-4 text-sm text-green-300 font-mono items-center">
-              <span className="flex items-center bg-slate-900/50 px-3 py-1 rounded-full border border-slate-700"><User size={14} className="mr-2"/> {project.role}</span>
-              <span className="flex items-center bg-slate-900/50 px-3 py-1 rounded-full border border-slate-700"><Calendar size={14} className="mr-2"/> {project.period}</span>
-            </div>
-          </div>
-        </div>
+          {/* 关闭按钮 */}
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-20">
+            <X size={24} />
+          </button>
 
-        {/* 内容区域 */}
-        <div className="p-8 space-y-10">
-          
-          {/* 1. 媒体展示区 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {project.images?.map((img, idx) => (
-              <div key={idx} className="relative group overflow-hidden rounded-xl border border-slate-700 aspect-video bg-slate-800">
-                <img src={img} alt={`Project Detail ${idx}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                  <span className="text-white text-xs bg-black/50 px-2 py-1 rounded">项目截图 {idx + 1}</span>
-                </div>
+          {/* 顶部 Banner */}
+          <div className="relative h-64 bg-slate-800 flex items-end p-8 overflow-hidden shrink-0">
+            {/* 媒体展示 (使用第一张图片作为 Banner) */}
+            {project.images?.[0] && <img src={project.images[0]} className="absolute inset-0 w-full h-full object-cover opacity-40 blur-sm" alt="bg"/>}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
+            <div className="relative z-10 w-full">
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 shadow-sm">{project.title}</h2>
+              <div className="flex flex-wrap gap-4 text-sm text-green-300 font-mono items-center">
+                <span className="flex items-center bg-slate-900/50 px-3 py-1 rounded-full border border-slate-700"><User size={14} className="mr-2"/> {project.role}</span>
+                <span className="flex items-center bg-slate-900/50 px-3 py-1 rounded-full border border-slate-700"><Calendar size={14} className="mr-2"/> {project.period}</span>
               </div>
-            ))}
-            {/* 视频占位符 */}
-            <div className="relative rounded-xl border border-slate-700 border-dashed aspect-video bg-slate-800/50 flex flex-col items-center justify-center group text-slate-500 hover:text-green-400 hover:border-green-500/50 transition-colors">
-              <PlayCircle size={48} className="mb-2" />
-              <p className="text-sm">演示视频 (待上传)</p>
             </div>
           </div>
 
-          {/* 2. 核心信息 */}
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* 左侧：详细描述 */}
-            <div className="md:col-span-2 space-y-8">
-              <section>
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Target size={20} className="mr-2 text-green-500"/> 项目背景</h3>
-                <p className="text-slate-300 leading-relaxed text-lg">{project.background}</p>
-              </section>
-              
-              <section>
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Cpu size={20} className="mr-2 text-blue-500"/> 核心工作与挑战</h3>
-                <ul className="space-y-4">
-                  {project.work.map((w, i) => (
-                    <li key={i} className="flex items-start text-slate-300 bg-slate-800/30 p-3 rounded-lg border border-slate-800">
-                      <span className="mr-3 text-blue-500 mt-1 font-bold">0{i+1}.</span>
-                      <span>{w}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
+          {/* 内容区域 */}
+          <div className="p-8 space-y-10">
 
-            {/* 右侧：成果与技术 */}
-            <div className="space-y-8">
-              <section className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center"><Award size={20} className="mr-2 text-yellow-500"/> 成果与产出</h3>
-                <ul className="space-y-3">
-                  {project.result.map((r, i) => (
-                    <li key={i} className="text-sm text-slate-300 border-l-2 border-yellow-500/50 pl-3">
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-                {project.paper && (
-                  <div className="mt-4 pt-4 border-t border-slate-700">
-                    <div className="text-xs text-slate-500 uppercase mb-1">发表论文</div>
-                    <div className="text-xs text-green-300 font-mono">{project.paper}</div>
+            {/* 1. 媒体展示区 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> {/* <-- 关键修改：md:grid-cols-3，每行显示 3 张图片 */}
+              {project.images?.map((img, idx) => (
+                <div key={idx} className="relative group overflow-hidden rounded-xl border border-slate-700 aspect-video bg-slate-800">
+                  <img src={img} alt={`Project Detail ${idx}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                    <span className="text-white text-xs bg-black/50 px-2 py-1 rounded">项目截图 {idx + 1}</span>
                   </div>
-                )}
-              </section>
-
-              <section>
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">技术栈</h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.tags.map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-slate-800 text-green-400 text-xs rounded-full border border-slate-700">
-                      {tag}
-                    </span>
-                  ))}
                 </div>
-              </section>
+              ))}
+              {/* 视频占位符 - 触发视频模态框 */}
+              {project.videoUrl ? (
+                <div
+                  className="relative rounded-xl border border-slate-700 border-dashed aspect-video bg-slate-800/50 flex flex-col items-center justify-center group text-slate-500 hover:text-green-400 hover:border-green-500/50 transition-colors cursor-pointer"
+                  onClick={() => setCurrentVideoUrl(project.videoUrl!)}
+                >
+                  <PlayCircle size={48} className="mb-2" />
+                  <p className="text-sm">点击播放演示视频</p>
+                </div>
+              ) : (
+                <div className="relative rounded-xl border border-slate-700 border-dashed aspect-video bg-slate-800/50 flex flex-col items-center justify-center group text-slate-500">
+                  <PlayCircle size={48} className="mb-2" />
+                  <p className="text-sm">视频演示 (待添加)</p>
+                </div>
+              )}
             </div>
-          </div>
 
+            {/* 2. 核心信息 */}
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* 左侧：详细描述 */}
+              <div className="md:col-span-2 space-y-8">
+                <section>
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Target size={20} className="mr-2 text-green-500"/> 项目背景</h3>
+                  <p className="text-slate-300 leading-relaxed text-lg">{project.background}</p>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Cpu size={20} className="mr-2 text-blue-500"/> 核心工作与挑战</h3>
+                  <ul className="space-y-4">
+                    {project.work.map((w, i) => (
+                      <li key={i} className="flex items-start text-slate-300 bg-slate-800/30 p-3 rounded-lg border border-slate-800">
+                        <span className="mr-3 text-blue-500 mt-1 font-bold">0{i+1}.</span>
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+
+              {/* 右侧：成果与技术 */}
+              <div className="space-y-8">
+                <section className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center"><Award size={20} className="mr-2 text-yellow-500"/> 成果与产出</h3>
+                  <ul className="space-y-3">
+                    {project.result.map((r, i) => (
+                      <li key={i} className="text-sm text-slate-300 border-l-2 border-yellow-500/50 pl-3">
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                  {project.paper && (
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                      <div className="text-xs text-slate-500 uppercase mb-1">发表论文</div>
+                      <div className="text-xs text-green-300 font-mono">{project.paper}</div>
+                    </div>
+                  )}
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">技术栈</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="px-3 py-1 bg-slate-800 text-green-400 text-xs rounded-full border border-slate-700">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </div>
-    </div>
+      </div >
+
+      {/* 嵌套的视频嵌入模态框 */}
+      {currentVideoUrl && (
+        <VideoEmbedModal
+          videoUrl={currentVideoUrl}
+          onClose={() => setCurrentVideoUrl(null)}
+        />
+      )}
+    </>
   );
 };
 
@@ -424,7 +516,7 @@ const AIChatWidget = () => {
     setInput('');
     setMessages(prev => [...prev, {role: 'user', text: userText}]);
     setLoading(true);
-    
+
     // 如果没有 API Key，使用模拟回复
     if (!apiKey) {
       setTimeout(() => {
@@ -476,7 +568,7 @@ const AIChatWidget = () => {
             <div ref={scrollRef}/>
           </div>
           <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-            <input 
+            <input
               className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-green-500 outline-none placeholder-slate-500"
               value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
               placeholder="问我关于项目的问题..."
@@ -520,14 +612,14 @@ export default function Portfolio() {
       <section id="关于" className="pt-32 pb-20 px-4 min-h-[80vh] flex items-center relative overflow-hidden">
         {/* 背景装饰 */}
         <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-        
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="space-y-8 animate-fade-in-left">
+
+        <div className="max-w-6xl mx-auto flex flex-col-reverse md:flex-row gap-12 items-start relative z-10">
+          <div className="flex-1 space-y-8 animate-fade-in-left pt-6 md:pt-0">
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-mono">
               <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
               Open to Work | 2026 届硕士
             </div>
-            
+
             <div>
               <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
                 你好，我是<br/>
@@ -539,7 +631,7 @@ export default function Portfolio() {
             <p className="text-slate-400 leading-relaxed max-w-xl whitespace-pre-line text-lg">
               {PORTFOLIO_DATA.personal.bio}
             </p>
-            
+
             <div className="flex gap-4 pt-4">
               <a href="#联系" className="px-8 py-3 bg-green-500 text-slate-900 font-bold rounded-full hover:bg-green-400 transition-all hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]">联系我</a>
               <a href="#项目" className="px-8 py-3 border border-slate-700 rounded-full hover:bg-slate-800 transition-colors flex items-center">
@@ -548,32 +640,29 @@ export default function Portfolio() {
             </div>
           </div>
 
-          <div className="relative animate-fade-in-right hidden md:block group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-            <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-6 rotate-2 hover:rotate-0 transition-transform duration-500">
-              <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative border border-slate-700">
-                {/* 你的照片 URL，取消注释并替换为实际路径 */}
-               <img
-                 src="/assets/3.jpg"
-                 alt="钟辉宇证件照"
-                 className="w-full h-full object-cover"
-               />
-                {/* 照片占位 */}
-                {/*<div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 bg-slate-950">*/}
-                {/*   <User size={80} className="mb-4 text-slate-700"/>*/}
-                {/*   <span className="text-sm font-mono text-slate-500">Photo Placeholder</span>*/}
-                {/*</div>*/}
-              </div>
+          {/* 优化后的图片展示区域 - 保持中等尺寸，减少旋转，与文字保持距离 */}
+          <div className="relative animate-fade-in-right flex-shrink-0 flex justify-center md:justify-end mt-8 md:mt-0">
+            <div className="relative w-64"> {/* <-- 目标尺寸容器 w-64 */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+              <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-3 hover:rotate-0 transition-transform duration-500 shadow-2xl">
+                <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative border border-slate-700">
+                   {/* 你的照片 URL，取消注释并替换为实际路径 */}
+                   <img
+                     src="https://placehold.co/256x341/334155/ffffff?text=Zhong+Huiyu+Photo"
+                     alt="钟辉宇证件照"
+                     className="w-full h-full object-cover"
+                   />
+                </div>
 
-              {/* 悬浮数据卡片 */}
-              <div
-                  className="absolute -bottom-6 -left-6 bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-2xl flex gap-6">
-                {PORTFOLIO_DATA.stats.slice(0,2).map((s,i) => (
-                  <div key={i} className="text-center">
-                    <div className="text-2xl font-bold text-white">{s.value}</div>
-                    <div className="text-xs text-slate-500 uppercase tracking-wider">{s.label}</div>
-                  </div>
-                ))}
+                {/* 悬浮数据卡片 */}
+                <div className="absolute -bottom-4 -left-8 bg-slate-800/90 backdrop-blur p-3 rounded-lg border border-slate-700 shadow-2xl flex gap-4">
+                  {PORTFOLIO_DATA.stats.slice(0,2).map((s,i) => (
+                    <div key={i} className="text-center min-w-[60px]">
+                      <div className="text-lg font-bold text-white">{s.value}</div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -658,7 +747,7 @@ export default function Portfolio() {
       {/* 经历与活动 */}
       <section id="经历" className="py-24 bg-slate-900/30 border-y border-slate-800/50">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-16">
-          
+
           {/* 教育背景 */}
           <div>
             <SectionTitle icon={BookOpen}>教育背景</SectionTitle>
@@ -736,6 +825,7 @@ export default function Portfolio() {
             ))}
           </div>
         </div>
+      </section>
 
       {/* 页脚联系 */}
       <footer id="联系" className="py-24 bg-slate-950">
